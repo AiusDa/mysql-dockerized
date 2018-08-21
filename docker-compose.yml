@@ -1,0 +1,13 @@
+version: '3'
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:5.6
+    restart: always
+    ports:
+      - 3306:${EXPOSE}
+    environment:
+      - MYSQL_ROOT_PASSWORD
+    volumes:
+      - ./dumps:/dumps
+      - ./lib:/var/lib/mysql
