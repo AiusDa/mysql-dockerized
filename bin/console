@@ -72,6 +72,81 @@ dockerIsRunning() {
 }
 
 #######################################
+# Print the status of the server
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+status() {
+  if [ $(dockerIsRunning) = false ]; then
+    echo >&2 "Not running";
+    exit 1;
+  fi
+
+  # docker status
+  docker-compose -f $DOCKERCOMPOSEFILE ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
+
+}
+
+#######################################
+# Stop the server
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+stop() {
+
+  if [ $(dockerIsRunning) = true ]; then
+    # stop all docker containers
+    docker-compose -f $DOCKERCOMPOSEFILE down
+  fi
+
+}
+
+#######################################
+# Start the server and all of its
+# components
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+start() {
+
+  if [ $(dockerIsRunning) = true ]; then
+    echo >&2 "The component are already running";
+    exit 1;
+  fi
+
+  # start docker containers
+  docker-compose -f $DOCKERCOMPOSEFILE up -d
+
+}
+
+#######################################
+# Restart the server and all of its
+# components
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+restart() {
+  stop
+  start
+}
+
+#######################################
 # Execute bin/magento inside the php docker
 # container with all given arguments.
 # Globals:
@@ -122,6 +197,11 @@ usage() {
   printf "  %-15s%-30s\n" "mysql:import" "Import a database from dumps folder"
   printf "  %-15s%-30s\n" "mysql:export" "Export a database to dumps folder"
   printf "  %-15s%-30s\n" "mysql:query" "Executes the query given"
+  echo ""
+  printf "  %-15s%-30s\n" "start" "Start MySQL service"
+  printf "  %-15s%-30s\n" "restart" "Restart MySQL service"
+  printf "  %-15s%-30s\n" "stop" "Stop MySQL service"
+  printf "  %-15s%-30s\n" "status" "Get the current service status"
 }
 
 ###########
@@ -141,6 +221,22 @@ case "$1" in
     mysql:query)
         shift 1
         runQuery $*
+    ;;
+
+    start)
+        start
+    ;;
+
+    restart)
+        restart
+    ;;
+
+    stop)
+        stop
+    ;;
+
+    status)
+        status
     ;;
 
     *)
