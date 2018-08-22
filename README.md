@@ -5,9 +5,10 @@ The CLI is inspired by the [Dockerized Magento 2](https://github.com/arvatoSCM/d
 
 ## Usage
 1. Download this project
-2. Run `sudo chmod +x bin/console` to give CLI permissions to run
-3. Run `bin/console start`
-4. Enjoy it
+2. Copy .env-example as .env and fill the variables
+3. Run `sudo chmod +x bin/console` to give CLI permissions to run
+4. Run `bin/console start`
+5. Enjoy it
 
 ## Import databases
 1. Copy into dumps folder your dump
