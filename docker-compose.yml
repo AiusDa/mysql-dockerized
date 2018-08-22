@@ -9,5 +9,4 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD
     volumes:
-      - ./dumps:/dumps
       - ./lib:/var/lib/mysql
