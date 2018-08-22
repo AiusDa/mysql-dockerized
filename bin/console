@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#############
+# VARIABLES #
+#############
+
+# SCRIPTNAME contains the name
+# of the current script (e.g. "server")
+SCRIPTNAME="bin/$(basename $0)"
+
+# PROJECTPATH contains the full
+# directory path of the project itself
+PROJECTPATH=$(pwd)
+
+# ENVIRONMENTVARIABLESFILE contains the path
+# to the file that holds the required environment
+# variables for this script.
+ENVIRONMENTVARIABLESFILE="$PROJECTPATH/.env"
+if [ ! -f $ENVIRONMENTVARIABLESFILE ]; then
+  echo >&2 "The file that holds the environment variables was not found at $ENVIRONMENTVARIABLESFILE"
+  exit 1
+fi
+
+# DOCKERCOMPOSEFILE contains the path
+# to the docker-compose.yml file
+DOCKERCOMPOSEFILE="$PROJECTPATH/docker-compose.yml"
+if [ ! -f $DOCKERCOMPOSEFILE ]; then
+  echo >&2 "The docker-compose file was not found at $DOCKERCOMPOSEFILE"
+  exit 1
+fi
+
+# execute the file that sets the environment variables
+. $ENVIRONMENTVARIABLESFILE
+
+#######################
+# INITIAL VALIDATIONS #
+#######################
+
+# check the environment variables
+if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+  echo >&2 "The MYSQL_ROOT_PASSWORD variable is not set"
+  exit 1
+fi
+
+# Check availability of docker
+hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
+
+# Check availability of docker-compose
+hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
+
+#############
+# FUNCTIONS #
+#############
+
+#######################################
+# Check if the docker-components are running
+# Globals:
+#   DOCKERCOMPOSEFILE
+# Arguments:
+#   None
+# Returns:
+#   true|false
+#######################################
+dockerIsRunning() {
+  dockerStatusOutput=$(docker-compose -f $DOCKERCOMPOSEFILE ps -q)
+  outputSize=${#dockerStatusOutput}
+  if [ "$outputSize" -gt 0 ]; then
+    echo true
+  else
+    echo false
+  fi
+}
+
+#######################################
+# Execute bin/magento inside the php docker
+# container with all given arguments.
+# Globals:
+#   MYSQL_ROOT_PASSWORD
+# Arguments:
+#   *
+# Returns:
+#   None
+#######################################
+execInDocker() {
+  if [ $(dockerIsRunning) = false ]; then
+    echo >&2 "Docker is not running. Please start the containers first.";
+    exit 1;
+  fi
+  # pass the arguments to the bin/magento script inside the PHP container
+  docker exec mysql $*
+}
+
+#######################################
+# Execute bin/magento inside the php docker
+# container with all given arguments.
+# Globals:
+#   MYSQL_ROOT_PASSWORD
+# Arguments:
+#   *
+# Returns:
+#   None
+#######################################
+runQuery() {
+  docker exec -i mysql mysql -u root -p$MYSQL_ROOT_PASSWORD -e "$*"
+}
+
+#######################################
+# Print the usage information for the
+# server control script
+# Globals:
+#   SCRIPTNAME
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+usage() {
+  echo "Utility for controlling dockerized MySQL projects\n"
+  echo "Usage:\n\n  $SCRIPTNAME <action> <arguments...>"
+  echo ""
+  echo "Actions:\n"
+  printf "  %-15s%-30s\n" "mysql:import" "Import a database from dumps folder"
+  printf "  %-15s%-30s\n" "mysql:export" "Export a database to dumps folder"
+  printf "  %-15s%-30s\n" "mysql:query" "Executes the query given"
+}
+
+###########
+# OPTIONS #
+###########
+
+case "$1" in
+    mysql:import)
+        runQuery CREATE DATABASE IF NOT EXISTS $3
+        cat ./dumps/$2.sql | docker exec -i mysql mysql -u root -p$MYSQL_ROOT_PASSWORD $3
+    ;;
+
+    mysql:export)
+        docker exec mysql mysqldump -u root -p$MYSQL_ROOT_PASSWORD $2 > ./dumps/$3.sql
+    ;;
+
+    mysql:query)
+        shift 1
+        runQuery $*
+    ;;
+
+    *)
+        usage
+    ;;
+esac
