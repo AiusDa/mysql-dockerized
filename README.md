@@ -22,5 +22,8 @@ The CLI is inspired by the [Dockerized Magento 2](https://github.com/arvatoSCM/d
 ## Execute a query
 1. Run `bin/console mysql:query some-sql-query`
 
+## Execute commands inside docker
+1. Run `bin/console exec some-command`
+
 ## See more options
 1. Run `bin/console`
