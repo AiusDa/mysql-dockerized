@@ -101,7 +101,7 @@ execInDocker() {
 #   None
 #######################################
 runQuery() {
-  docker exec -i mysql mysql -u root -p$MYSQL_ROOT_PASSWORD -e "$*"
+  docker exec mysql mysql -u root -p$MYSQL_ROOT_PASSWORD -e "$*"
 }
 
 #######################################
