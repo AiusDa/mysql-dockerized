@@ -162,7 +162,7 @@ execInDocker() {
     exit 1;
   fi
   # pass the arguments to the bin/magento script inside the PHP container
-  docker exec mysql $*
+  docker exec -it mysql $*
 }
 
 #######################################
@@ -198,6 +198,8 @@ usage() {
   printf "  %-15s%-30s\n" "mysql:dump" "Create a dump for the database given"
   printf "  %-15s%-30s\n" "mysql:query" "Executes the query given"
   echo ""
+  printf "  %-15s%-30s\n" "exec" "Executes commands inside docker"
+  echo ""
   printf "  %-15s%-30s\n" "start" "Start MySQL service"
   printf "  %-15s%-30s\n" "restart" "Restart MySQL service"
   printf "  %-15s%-30s\n" "stop" "Stop MySQL service"
@@ -221,6 +223,11 @@ case "$1" in
     mysql:query)
         shift 1
         runQuery $*
+    ;;
+
+    exec)
+      shift 1
+      execInDocker $*
     ;;
 
     start)
