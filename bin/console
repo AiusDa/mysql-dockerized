@@ -195,7 +195,7 @@ usage() {
   echo ""
   echo "Actions:\n"
   printf "  %-15s%-30s\n" "mysql:import" "Import a database from dumps folder"
-  printf "  %-15s%-30s\n" "mysql:export" "Export a database to dumps folder"
+  printf "  %-15s%-30s\n" "mysql:dump" "Create a dump for the database given"
   printf "  %-15s%-30s\n" "mysql:query" "Executes the query given"
   echo ""
   printf "  %-15s%-30s\n" "start" "Start MySQL service"
@@ -214,8 +214,8 @@ case "$1" in
         cat ./dumps/$2.sql | docker exec -i mysql mysql -u root -p$MYSQL_ROOT_PASSWORD $3
     ;;
 
-    mysql:export)
-        docker exec mysql mysqldump -u root -p$MYSQL_ROOT_PASSWORD $2 > ./dumps/$3.sql
+    mysql:dump)
+        execInDocker mysqldump -u root -p$MYSQL_ROOT_PASSWORD $2 > ./dumps/$3.sql
     ;;
 
     mysql:query)
