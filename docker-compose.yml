@@ -2,7 +2,7 @@ version: '3.7'
 services:
   mysql:
     container_name: mysql
-    image: mysql:5.6
+    image: mysql:${MYSQL_VERSION}
     restart: always
     ports:
       - ${EXPOSE}:3306
